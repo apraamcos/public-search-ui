@@ -1,16 +1,11 @@
+
 import { useState } from "react";
 import "./App.css";
 
 type FormData = {
   title: string;
-  titleInputType: string;
-  winfkey: string;
-  iswc: string;
-  ipi: string;
   writers: string[];
-  publishers: string[];
   performers: string[];
-  catalogueNo: string;
   skip: number;
   take: number;
 }
@@ -26,6 +21,12 @@ type PublisherWithDetails = {
 }
 
 type WorkSearchEntityPublic = {
+  winfkey: string;
+
+  iswc?: string;
+
+  title: string;
+  
   exclWriter: string;
 
   isDispute: boolean;
@@ -58,23 +59,11 @@ type WorkSearchResult = {
 
 const initialForm: FormData = {
   title: "",
-  titleInputType: "StartWith",
-  winfkey: "",
-  iswc: "",
-  ipi: "", 
   writers: [""],
-  publishers: [""],
   performers: [""],
-  catalogueNo: "",
   skip: 0,
   take: 20
 };
-
-const titleInputTypeOptions = [
-  { value: "StartWith", label: "Start With" },
-  { value: "Contained", label: "Contained" },
-  { value: "Exact", label: "Exact" }
-];
 
 function App() {
   const [formData, setFormData] = useState(initialForm);
@@ -87,14 +76,14 @@ function App() {
     setFormData({ ...formData, [name]: type === "number" ? Number(value) : value });
   };
 
-  const handleAddArrayItem = (field: 'writers' | 'publishers' | 'performers') => {
+  const handleAddArrayItem = (field: 'writers' | 'performers') => {
     setFormData(prev => ({
       ...prev,
       [field]: [...prev[field], ""]
     }));
   };
 
-  const handleRemoveArrayItem = (field: 'writers' | 'publishers' | 'performers', index: number) => {
+  const handleRemoveArrayItem = (field: 'writers' | 'performers', index: number) => {
     setFormData(prev => ({
       ...prev,
       [field]: prev[field].filter((_, i) => i !== index)
@@ -108,19 +97,18 @@ function App() {
     setResult(null);
     try {
       const query = `
-        query WorkSearchPublic($workSearchInput: WorkSearchInput!) {
+        query WorkSearchPublic($workSearchInput: WorkSearchInputPublic!) {
           workSearchPublic(workSearchInput: $workSearchInput) {
             total
-            works { winfkey title writers }
+            works { winfkey iswc title writers performers exclWriter isDispute isPdof isNc isCisnetExclude isLocal workMessage amcosControl akas publishersWithDetails { wrthkey name isApraMember isAmcosMember } }
           }
         }
       `;
       
       const input  = {
         ...formData,
-        writers: formData.writers.filter(Boolean).map(name => ({ nameKeyword: name })),
-        publishers: formData.publishers.filter(Boolean).map(name => ({ nameKeyword: name })),
-        performers: formData.performers.filter(Boolean).map(name => ({ nameKeyword: name }))
+        writers: formData.writers.filter(Boolean),
+        performers: formData.performers.filter(Boolean)
       };
       
       Object.keys(input).forEach(key => {
@@ -154,38 +142,8 @@ function App() {
       <form onSubmit={handleSubmit}>
         <div className="form-row">
           <label>
-            Title Input Type:
-            <select name="titleInputType" value={formData.titleInputType} onChange={handleChange}>
-              {titleInputTypeOptions.map(opt => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
             Title:
             <input type="text" name="title" value={formData.title} onChange={handleChange} />
-          </label>
-        </div>
-        <div className="form-row">
-          <label>
-            APRA Work ID (winfkey):
-            <input type="text" name="winfkey" value={formData.winfkey} onChange={handleChange} />
-          </label>
-          <label>
-            ISWC:
-            <input type="text" name="iswc" value={formData.iswc} onChange={handleChange} />
-          </label>
-        </div>
-        <div className="form-row">
-          <label>
-            IPI:
-            <input type="text" name="ipi" value={formData.ipi} onChange={handleChange} />
-          </label>
-          <label>
-            Catalogue No:
-            <input type="text" name="catalogueNo" value={formData.catalogueNo} onChange={handleChange} />
           </label>
         </div>
         <div className="form-row">
@@ -225,32 +183,6 @@ function App() {
           ))}
         </div>
         <div className="group-box">
-          <div className="group-box-title">Publishers</div>
-          {formData.publishers.map((v, i) => (
-            <div key={i} className="array-item-row">
-              <span className="array-item-index">{i + 1}.</span>
-              <input
-                type="text"
-                value={v}
-                onChange={e => {
-                  const arr = [...formData.publishers];
-                  arr[i] = e.target.value;
-                  setFormData({ ...formData, publishers: arr });
-                }}
-              />
-              <button
-                type="button"
-                onClick={() => handleRemoveArrayItem("publishers", i)}
-                disabled={formData.publishers.length === 1}
-              >
-                -
-              </button>
-              <button type="button" onClick={() => handleAddArrayItem("publishers")}>+
-              </button>
-            </div>
-          ))}
-        </div>
-        <div className="group-box">
           <div className="group-box-title">Performers</div>
           {formData.performers.map((v, i) => (
             <div key={i} className="array-item-row">
@@ -285,7 +217,67 @@ function App() {
         <div className="result">
           <h2>Result</h2>
           <div>Total: {result.total}</div>
-          <pre>{JSON.stringify(result.works, null, 2)}</pre>
+          <div className="table-scroll-x">
+            <table className="result-table bordered-table">
+              <thead>
+                <tr>
+                  <th>winfkey</th>
+                  <th>title</th>
+                  <th>writers</th>
+                  <th>performers</th>
+                  {result.works[0] && Object.keys(result.works[0])
+                    .filter(key => !['winfkey', 'title', 'writers', 'performers'].includes(key))
+                    .map(key => <th key={key}>{key}</th>)}
+                </tr>
+              </thead>
+              <tbody>
+                {result.works.map((work, idx) => (
+                  <tr key={idx}>
+                    <td>{work.winfkey}</td>
+                    <td>{work.title}</td>
+                    <td>{Array.isArray(work.writers) && work.writers.length > 3
+                      ? `${work.writers.slice(0, 3).join(", ")} and ${work.writers.length - 3} more`
+                      : work.writers?.join(", ")}
+                    </td>
+                    <td>{Array.isArray(work.performers) && work.performers.length > 3
+                      ? `${work.performers.slice(0, 3).join(", ")} and ${work.performers.length - 3} more`
+                      : work.performers?.join(", ")}
+                    </td>
+                    {result.works[0] && Object.keys(result.works[0])
+                      .filter(key => !['winfkey', 'title', 'writers', 'performers'].includes(key))
+                      .map(key => {
+                        const value = work[key];
+                        if (key === 'publishersWithDetails') {
+                          if (Array.isArray(value) && value.length > 0) {
+                            return (
+                              <td key={key}>
+                                {value.map((pub, i) => (
+                                  <div key={i}>
+                                    {pub.name || '-'}
+                                    {pub.isApraMember ? ' (APRA)' : ''}
+                                    {pub.isAmcosMember ? ' (AMCOS)' : ''}
+                                  </div>
+                                ))}
+                              </td>
+                            );
+                          } else {
+                            return <td key={key}>-</td>;
+                          }
+                        } else if (Array.isArray(value)) {
+                          return <td key={key}>{value.join(", ")}</td>;
+                        } else if (typeof value === 'object' && value !== null) {
+                          return <td key={key}>{JSON.stringify(value)}</td>;
+                        } else if (value === null || value === undefined || value === "") {
+                          return <td key={key}>-</td>;
+                        } else {
+                          return <td key={key}>{String(value)}</td>;
+                        }
+                      })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>

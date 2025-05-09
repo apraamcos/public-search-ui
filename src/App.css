@@ -86,7 +86,26 @@ button:hover {
   background-color: #0056b3;
 }
 
-/* 只给 - 按钮和 + 按钮之间加间距，避免首个按钮有多余间距 */
+/* Add border and horizontal scroll styles for the table */
+.bordered-table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 900px;
+}
+.bordered-table th, .bordered-table td {
+  border: 1px solid #ccc;
+  padding: 6px 10px;
+  text-align: left;
+}
+.bordered-table th {
+  background: #f7f7f7;
+}
+.table-scroll-x {
+  overflow-x: auto;
+  width: 100%;
+}
+
+/* Add spacing between - and + buttons to avoid extra spacing for the first button */
 input + button {
   margin-left: 0.5rem;
 }
@@ -94,7 +113,7 @@ button + button {
   margin-left: 0.5rem;
 }
 
-/* 一行1-2个字段的容器 */
+/* Container for one or two fields per row */
 .form-row {
   display: flex;
   gap: 1rem;
@@ -103,7 +122,7 @@ button + button {
   flex: 1;
 }
 
-/* 分组框样式 */
+/* Group box style */
 .group-box {
   border: 1px solid #bbb;
   border-radius: 6px;
@@ -120,7 +139,7 @@ button + button {
   margin-bottom: 0.5rem;
 }
 
-/* writers/publishers/performers 编号样式 */
+/* Index style for writers/publishers/performers */
 .array-item-row {
   display: flex;
   align-items: center;
