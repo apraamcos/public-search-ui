@@ -5,6 +5,11 @@
   text-align: center;
 }
 
+body, .container, #root {
+  background: #fff;
+  color: #222;
+}
+
 .logo {
   height: 6em;
   padding: 1.5em;
@@ -53,23 +58,78 @@ label {
   display: flex;
   flex-direction: column;
   font-size: 1rem;
-  color: #333;
+  color: #222;
+  align-items: flex-start;
+  text-align: left;
 }
 
-input, select, textarea, button {
+input, select, textarea {
   padding: 0.5rem;
   font-size: 1rem;
   border: 1px solid #ccc;
   border-radius: 4px;
+  background: none;
+  color: #222;
 }
 
 button {
-  background-color: #007BFF;
-  color: white;
+  padding: 0.5rem;
+  font-size: 1rem;
   border: none;
   cursor: pointer;
+  background-color: #007BFF;
+  color: white;
+  margin-left: 0.25rem;
 }
 
 button:hover {
   background-color: #0056b3;
+}
+
+/* 只给 - 按钮和 + 按钮之间加间距，避免首个按钮有多余间距 */
+input + button {
+  margin-left: 0.5rem;
+}
+button + button {
+  margin-left: 0.5rem;
+}
+
+/* 一行1-2个字段的容器 */
+.form-row {
+  display: flex;
+  gap: 1rem;
+}
+.form-row > label {
+  flex: 1;
+}
+
+/* 分组框样式 */
+.group-box {
+  border: 1px solid #bbb;
+  border-radius: 6px;
+  padding: 1rem;
+  margin-bottom: 2rem;
+  background: #fafbfc;
+}
+.group-box-title {
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  color: #007BFF;
+}
+.group-box label {
+  margin-bottom: 0.5rem;
+}
+
+/* writers/publishers/performers 编号样式 */
+.array-item-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.array-item-index {
+  min-width: 1.5em;
+  text-align: right;
+  color: #888;
+  font-weight: bold;
 }

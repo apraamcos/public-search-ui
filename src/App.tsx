@@ -15,6 +15,47 @@ type FormData = {
   take: number;
 }
 
+type PublisherWithDetails = {
+  wrthkey: string;
+
+  name: string;
+
+  isApraMember: boolean;
+
+  isAmcosMember: boolean;
+}
+
+type WorkSearchEntityPublic = {
+  exclWriter: string;
+
+  isDispute: boolean;
+
+  isPdof: boolean;
+
+  isNc: boolean;
+
+  isCisnetExclude: boolean;
+
+  writers?: string[];
+
+  isLocal: boolean;
+
+  workMessage?: string;
+
+  amcosControl?: string;
+
+  akas?: string[];
+
+  publishersWithDetails?: PublisherWithDetails[];
+
+  performers?: string[];
+}
+
+type WorkSearchResult = {
+  total: number;
+  works: Array<WorkSearchEntityPublic>;
+};
+
 const initialForm: FormData = {
   title: "",
   titleInputType: "StartWith",
@@ -37,13 +78,27 @@ const titleInputTypeOptions = [
 
 function App() {
   const [formData, setFormData] = useState(initialForm);
-  const [result, setResult] = useState<FormData | null>(null);
+  const [result, setResult] = useState<WorkSearchResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     setFormData({ ...formData, [name]: type === "number" ? Number(value) : value });
+  };
+
+  const handleAddArrayItem = (field: 'writers' | 'publishers' | 'performers') => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: [...prev[field], ""]
+    }));
+  };
+
+  const handleRemoveArrayItem = (field: 'writers' | 'publishers' | 'performers', index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: prev[field].filter((_, i) => i !== index)
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -60,18 +115,19 @@ function App() {
           }
         }
       `;
-      // 只保留有值的字段
+      
       const input  = {
         ...formData,
         writers: formData.writers.filter(Boolean).map(name => ({ nameKeyword: name })),
         publishers: formData.publishers.filter(Boolean).map(name => ({ nameKeyword: name })),
         performers: formData.performers.filter(Boolean).map(name => ({ nameKeyword: name }))
       };
-      // 移除值为 "" 的字段
+      
       Object.keys(input).forEach(key => {
         if (
           input[key as keyof FormData] === "" ||
-          (Array.isArray(input[key as keyof FormData]) && input[key as keyof FormData].length === 0)
+          (Array.isArray(input[key as keyof FormData]) 
+            && (input[key as keyof FormData] as Array<any>).length === 0)
         ) {
           delete input[key as keyof FormData];
         }
@@ -96,45 +152,65 @@ function App() {
     <div className="container">
       <h1>Work Public Search</h1>
       <form onSubmit={handleSubmit}>
-        <label>
-          Title:
-          <input type="text" name="title" value={formData.title} onChange={handleChange} />
-        </label>
-        <label>
-          Title Input Type:
-          <select name="titleInputType" value={formData.titleInputType} onChange={handleChange}>
-            {titleInputTypeOptions.map(opt => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          APRA Work ID (winfkey):
-          <input type="text" name="winfkey" value={formData.winfkey} onChange={handleChange} />
-        </label>
-        <label>
-          ISWC:
-          <input type="text" name="iswc" value={formData.iswc} onChange={handleChange} />
-        </label>
-        <label>
-          IPI:
-          <input
-            type="text"
-            name="ipi"
-            value={formData.ipi}
-            onChange={handleChange}
-          />
-        </label>
-        <div>
-          <label>Writers:</label>
+        <div className="form-row">
+          <label>
+            Title Input Type:
+            <select name="titleInputType" value={formData.titleInputType} onChange={handleChange}>
+              {titleInputTypeOptions.map(opt => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Title:
+            <input type="text" name="title" value={formData.title} onChange={handleChange} />
+          </label>
+        </div>
+        <div className="form-row">
+          <label>
+            APRA Work ID (winfkey):
+            <input type="text" name="winfkey" value={formData.winfkey} onChange={handleChange} />
+          </label>
+          <label>
+            ISWC:
+            <input type="text" name="iswc" value={formData.iswc} onChange={handleChange} />
+          </label>
+        </div>
+        <div className="form-row">
+          <label>
+            IPI:
+            <input type="text" name="ipi" value={formData.ipi} onChange={handleChange} />
+          </label>
+          <label>
+            Catalogue No:
+            <input type="text" name="catalogueNo" value={formData.catalogueNo} onChange={handleChange} />
+          </label>
+        </div>
+        <div className="form-row">
+          <label>
+            Skip:
+            <input type="number" name="skip" value={formData.skip} onChange={handleChange} min={0} />
+          </label>
+          <label>
+            Take:
+            <input type="number" name="take" value={formData.take} onChange={handleChange} min={1} />
+          </label>
+        </div>
+        <div className="group-box">
+          <div className="group-box-title">Writers</div>
           {formData.writers.map((v, i) => (
-            <div key={i} style={{ display: "flex", alignItems: "center" }}>
+            <div key={i} className="array-item-row">
+              <span className="array-item-index">{i + 1}.</span>
               <input
                 type="text"
                 value={v}
-                onChange={e => handleChange(e)}
+                onChange={e => {
+                  const arr = [...formData.writers];
+                  arr[i] = e.target.value;
+                  setFormData({ ...formData, writers: arr });
+                }}
               />
               <button
                 type="button"
@@ -143,20 +219,24 @@ function App() {
               >
                 -
               </button>
-              <button type="button" onClick={() => handleAddArrayItem("writers")}>
-                +
+              <button type="button" onClick={() => handleAddArrayItem("writers")}>+
               </button>
             </div>
           ))}
         </div>
-        <div>
-          <label>Publishers:</label>
+        <div className="group-box">
+          <div className="group-box-title">Publishers</div>
           {formData.publishers.map((v, i) => (
-            <div key={i} style={{ display: "flex", alignItems: "center" }}>
+            <div key={i} className="array-item-row">
+              <span className="array-item-index">{i + 1}.</span>
               <input
                 type="text"
                 value={v}
-                onChange={e => handleChange(e)}
+                onChange={e => {
+                  const arr = [...formData.publishers];
+                  arr[i] = e.target.value;
+                  setFormData({ ...formData, publishers: arr });
+                }}
               />
               <button
                 type="button"
@@ -165,20 +245,24 @@ function App() {
               >
                 -
               </button>
-              <button type="button" onClick={() => handleAddArrayItem("publishers")}>
-                +
+              <button type="button" onClick={() => handleAddArrayItem("publishers")}>+
               </button>
             </div>
           ))}
         </div>
-        <div>
-          <label>Performers:</label>
+        <div className="group-box">
+          <div className="group-box-title">Performers</div>
           {formData.performers.map((v, i) => (
-            <div key={i} style={{ display: "flex", alignItems: "center" }}>
+            <div key={i} className="array-item-row">
+              <span className="array-item-index">{i + 1}.</span>
               <input
                 type="text"
                 value={v}
-                onChange={e => handleChange(e)}
+                onChange={e => {
+                  const arr = [...formData.performers];
+                  arr[i] = e.target.value;
+                  setFormData({ ...formData, performers: arr });
+                }}
               />
               <button
                 type="button"
@@ -187,29 +271,11 @@ function App() {
               >
                 -
               </button>
-              <button type="button" onClick={() => handleAddArrayItem("performers")}>
-                +
+              <button type="button" onClick={() => handleAddArrayItem("performers")}>+
               </button>
             </div>
           ))}
         </div>
-        <label>
-          Catalogue No:
-          <input
-            type="text"
-            name="catalogueNo"
-            value={formData.catalogueNo}
-            onChange={handleChange}
-          />
-        </label>
-        <label>
-          Skip:
-          <input type="number" name="skip" value={formData.skip} onChange={handleChange} min={0} />
-        </label>
-        <label>
-          Take:
-          <input type="number" name="take" value={formData.take} onChange={handleChange} min={1} />
-        </label>
         <button type="submit" disabled={loading}>
           {loading ? "Searching..." : "Search"}
         </button>
