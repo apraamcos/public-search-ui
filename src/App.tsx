@@ -65,7 +65,16 @@ const initialForm: FormData = {
   take: 20
 };
 
+const sha256 = async (message: any) => {
+  const msgBuffer = new TextEncoder().encode(message);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", msgBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+};
+
+
 function App() {
+  console.log(import.meta.env.VITE_API_URL)
   const [formData, setFormData] = useState(initialForm);
   const [result, setResult] = useState<WorkSearchResult | null>(null);
   const [loading, setLoading] = useState(false);
@@ -121,10 +130,15 @@ function App() {
         }
       });
 
-      const res = await fetch("http://localhost:8080/graphql", {
+      const requestBody = JSON.stringify({
+        query,
+        variables: { workSearchInput: input }
+      });
+
+      const res = await fetch(import.meta.env.VITE_API_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query, variables: { workSearchInput: input } })
+        headers: { "Content-Type": "application/json", "x-amz-content-sha256": await sha256(requestBody) },
+        body: requestBody
       });
       const json = await res.json();
       if (json.errors) throw new Error(json.errors[0].message);
