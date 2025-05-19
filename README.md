@@ -227,7 +227,7 @@ For additional assistance or information regarding this API, please contact the 
 
 ## How to run it locally
 
-copy the config/dev.env into the root dir of this project and call rename to .env
+copy the `config/dev.env` or `config/sit.env` into the root dir of this project and call rename to .env
 
 npm i
 
