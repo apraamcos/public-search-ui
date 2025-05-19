@@ -74,7 +74,6 @@ const sha256 = async (message: any) => {
 
 
 function App() {
-  console.log(import.meta.env.VITE_API_URL)
   const [formData, setFormData] = useState(initialForm);
   const [result, setResult] = useState<WorkSearchResult | null>(null);
   const [loading, setLoading] = useState(false);
@@ -109,7 +108,28 @@ function App() {
         query WorkSearchPublic($workSearchInput: WorkSearchInputPublic!) {
           workSearchPublic(workSearchInput: $workSearchInput) {
             total
-            works { winfkey iswc title writers performers exclWriter isDispute isPdof isNc isCisnetExclude isLocal workMessage amcosControl akas publishersWithDetails { wrthkey name isApraMember isAmcosMember } }
+            works { 
+              winfkey 
+              iswc 
+              title 
+              writers 
+              performers 
+              exclWriter 
+              isDispute 
+              isPdof 
+              isNc 
+              isCisnetExclude 
+              isLocal 
+              workMessage 
+              amcosControl 
+              akas 
+              publishersWithDetails { 
+                wrthkey 
+                name 
+                isApraMember 
+                isAmcosMember 
+              } 
+            }
           }
         }
       `;

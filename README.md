@@ -2,7 +2,7 @@
 
 ## Overview
 
-The APRA AMCOS Public Work Search API provides a way for authorized third-party applications to search for musical works in the APRA AMCOS database. This document provides comprehensive information about the API's functionality, request parameters, response structure, and validation rules.
+The APRA AMCOS Public Work Search API provides a way for authorized client applications to search for musical works in the APRA AMCOS database. This document provides comprehensive information about the API's functionality, request parameters, response structure, and validation rules.
 
 ## Endpoint
 
@@ -10,9 +10,9 @@ The APRA AMCOS Public Work Search API provides a way for authorized third-party 
 Please refer to the dev.env or sit.env file
 ```
 
-## Authentication
+## Headers
 
-API authentication details should be obtained separately from APRA AMCOS. All API calls require proper authentication headers.
+Please refer to the `App.tsx` file for any headers required to make the API call
 
 ## Operation: searchWorkPublic
 
